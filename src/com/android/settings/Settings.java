@@ -23,6 +23,7 @@ import com.android.settings.accounts.AuthenticatorHelper;
 import com.android.settings.accounts.ManageAccountsSettings;
 import com.android.settings.applications.InstalledAppDetails;
 import com.android.settings.applications.ManageApplications;
+import com.android.settings.ManagePlayback;
 import com.android.settings.bluetooth.BluetoothEnabler;
 import com.android.settings.deviceinfo.Memory;
 import com.android.settings.fuelgauge.PowerUsageSummary;
@@ -346,7 +347,7 @@ public class Settings extends PreferenceActivity
 
         if ("com.android.settings.ManageApplications".equals(intentClass)
                 || "com.android.settings.RunningServices".equals(intentClass)
-                || "com.android.settings.applications.StorageUse".equals(intentClass)) {
+                || "com.android.settings.applications.StorageUse".equals(intentClass)){
             // Old names of manage apps.
             intentClass = com.android.settings.applications.ManageApplications.class.getName();
         }
@@ -386,6 +387,7 @@ public class Settings extends PreferenceActivity
                 UserDictionarySettings.class.getName().equals(fragmentName) ||
                 Memory.class.getName().equals(fragmentName) ||
                 ManageApplications.class.getName().equals(fragmentName) ||
+                ManagePlayback.class.getName().equals(fragmentName) ||
                 WirelessSettings.class.getName().equals(fragmentName) ||
                 SoundSettings.class.getName().equals(fragmentName) ||
                 PrivacySettings.class.getName().equals(fragmentName) ||
@@ -819,6 +821,7 @@ public class Settings extends PreferenceActivity
     public static class DeviceInfoSettingsActivity extends Settings { /* empty */ }
     public static class ApplicationSettingsActivity extends Settings { /* empty */ }
     public static class ManageApplicationsActivity extends Settings { /* empty */ }
+    public static class ManagePlaybackActivity extends Settings { /* empty */ }
     public static class StorageUseActivity extends Settings { /* empty */ }
     public static class DevelopmentSettingsActivity extends Settings { /* empty */ }
     public static class AccessibilitySettingsActivity extends Settings { /* empty */ }
