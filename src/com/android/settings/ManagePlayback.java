@@ -32,7 +32,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.CheckedTextView;
 import android.widget.ListAdapter;
@@ -45,34 +44,71 @@ import android.widget.ArrayAdapter;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.view.LayoutInflater;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import android.os.Environment;
+
 
 public class ManagePlayback extends ListFragment implements OnItemClickListener {
         List<Map<String, String>> li = new ArrayList<Map<String, String>>();
         private static String tag = "Li_activity";
         private PackageManager pm;
+        SimpleAdapter adapter;
+        String baseDirName = Environment.getExternalStorageDirectory().toString();
         ListView listview;
-        ListAdapter adapter;
 
-String[] myFrriends = new String[] { 
-       "Sunil Gupta",
-          "Abhishek Tripathi",
-          "Awadhesh Diwakar",
-          "Amit Verma",
-          "Jitendra Singh",
-          "Ravi Jhansi",
-          "Ashish Jain",
-          "Sandeep Pal",
-          "Shishir Verma",
-          "Ravi BBD"
-      };
+        private HashMap<String,String>
+        create_package_list(String key, String value, int uid)
+        {
+            HashMap<String, String> pkg = new HashMap<String,String>();
+            pkg.put(key, value);
+            pkg.put("uid", "" + uid);
+            return pkg;
+        }
+
+        private void init_package_list(String name, int uid)
+        {
+            li.add(create_package_list("packagename", name, uid));
+        }
+
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                    Bundle savedInstanceState)
         {
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(inflater.getContext(),
-                    android.R.layout.simple_list_item_single_choice, myFrriends);
+            listview = (ListView) getActivity().findViewById(android.R.id.list);
+            pm = getActivity().getPackageManager();
+            List<ApplicationInfo> la = pm.getInstalledApplications(0);
+            Iterator<ApplicationInfo> it = la.listIterator();
+            while (it.hasNext()) {
+                    ApplicationInfo a = it.next();
+                    Log.i(tag, "Package Name: " + a.loadLabel(pm));
+                    init_package_list(a.loadLabel(pm).toString(), a.uid);
+            }
+            adapter = new SimpleAdapter(getActivity(), li,
+                    android.R.layout.simple_list_item_single_choice,
+              new String[] {"packagename", "uid"},
+              new int[] {android.R.id.text1, android.R.id.text2});
+
+            Log.i(tag, "storage directory: " + baseDirName);
+
             setListAdapter(adapter);
+//          listview.setAdapter(adapter);
+            listview.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
             return super.onCreateView(inflater, container, savedInstanceState);
+        }
+
+        @Override
+        public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo)
+        {
+            super.onCreateContextMenu(menu, v, menuInfo);
+            AdapterContextMenuInfo aInfo = (AdapterContextMenuInfo) menuInfo;
+            HashMap map = (HashMap) adapter.getItem(aInfo.position);
+            menu.setHeaderTitle(map.get("packagename") + "details");
+            menu.add(1, 1, 1, "" + map.get("details"));
         }
 
         @Override
@@ -82,20 +118,26 @@ String[] myFrriends = new String[] {
             getListView().setOnItemClickListener(this);
         }
 
+        private void write_to_file(String uid)
+        {
+                try {
+                BufferedWriter uidw = new BufferedWriter(new FileWriter(baseDirName + "/uid.txt"));
+                        uidw.write(uid);
+                        uidw.close();
+                } catch (IOException e) {
+                        e.printStackTrace();
+                }
+        }
+
         @Override
         public void onItemClick(AdapterView adapter, View view, int position, long id)
         {
-            Toast.makeText(getActivity().getBaseContext(), "Item clicked: " + myFrriends[position], Toast.LENGTH_LONG).show();
+            HashMap<String, String> map = (HashMap<String, String>)adapter.getItemAtPosition(position);
+            Toast.makeText(getActivity().getBaseContext(), "Item clicked: " + map.get("packagename"),  Toast.LENGTH_LONG).show();
+            write_to_file(map.get("uid"));
         }
 
 /*
-        private HashMap<String,String> create_planet(String key, String value)
-        {
-            HashMap<String, String> planet = new HashMap<String,String>();
-            planet.put(key, value);
-            return planet;
-        }
-
         private HashMap<String,String>
           create_package_list(String key, String value, int uid)
         {
