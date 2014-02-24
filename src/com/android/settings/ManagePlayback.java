@@ -60,14 +60,14 @@ import android.content.DialogInterface;
 
 
 public class ManagePlayback extends ListFragment implements OnItemClickListener {
+    private static int MIN_USER_UID = 10000;
     List<Map<String, String>> li = new ArrayList<Map<String, String>>();
     private static String tag = "Li_activity";
     private PackageManager pm;
     SimpleAdapter adapter;
     String baseDirName = "/data/data/com.android.settings";
     ListView listview;
-    public String message;
-    public String uid;
+    public String pkgName;
 
     private class ConfirmPackage extends DialogFragment {
         ManagePlayback mplayback;
@@ -81,10 +81,10 @@ public class ManagePlayback extends ListFragment implements OnItemClickListener 
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             // Use the Builder class for convenient dialog construction
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setMessage(mplayback.message + " selected")
+            builder.setMessage(mplayback.pkgName + " selected")
                    .setPositiveButton("confirm", new DialogInterface.OnClickListener() {
                        public void onClick(DialogInterface dialog, int id) {
-                           mplayback.write_to_file(mplayback.uid);
+                           mplayback.write_to_file(mplayback.pkgName);
                            getActivity().finish();
                        }
                    })
@@ -98,17 +98,16 @@ public class ManagePlayback extends ListFragment implements OnItemClickListener 
     }
 
     private HashMap<String,String>
-    create_package_list(String key, String value, int uid)
+    create_package_list(String key, String value)
     {
         HashMap<String, String> pkg = new HashMap<String,String>();
         pkg.put(key, value);
-        pkg.put("uid", "" + uid);
         return pkg;
     }
 
-    private void init_package_list(String name, int uid)
+    private void init_package_list(String name)
     {
-        li.add(create_package_list("packagename", name, uid));
+        li.add(create_package_list("packagename", name));
     }
 
     @Override
@@ -120,13 +119,13 @@ public class ManagePlayback extends ListFragment implements OnItemClickListener 
         List<ApplicationInfo> la = pm.getInstalledApplications(0);
         Iterator<ApplicationInfo> it = la.listIterator();
         while (it.hasNext()) {
-                ApplicationInfo a = it.next();
-                Log.i(tag, "Package Name: " + a.loadLabel(pm));
-                init_package_list(a.loadLabel(pm).toString(), a.uid);
+            ApplicationInfo a = it.next();
+            if (a.uid >= MIN_USER_UID)
+                init_package_list(a.loadLabel(pm).toString());
         }
         adapter = new SimpleAdapter(getActivity(), li,
                 android.R.layout.simple_list_item_single_choice,
-          new String[] {"packagename", "uid"},
+          new String[] {"packagename"},
           new int[] {android.R.id.text1, android.R.id.text2});
 
         Log.i(tag, "storage directory: " + baseDirName);
@@ -153,12 +152,12 @@ public class ManagePlayback extends ListFragment implements OnItemClickListener 
         getListView().setOnItemClickListener(this);
     }
 
-    private void write_to_file(String uid)
+    private void write_to_file(String pkgName)
     {
             try {
-            BufferedWriter uidw = new BufferedWriter(new FileWriter(baseDirName + "/uid.txt"));
-                    uidw.write(uid);
-                    uidw.close();
+            BufferedWriter pkgw = new BufferedWriter(new FileWriter(baseDirName + "/pkgName.txt"));
+                    pkgw.write(pkgName);
+                    pkgw.close();
             } catch (IOException e) {
                     e.printStackTrace();
             }
@@ -170,8 +169,7 @@ public class ManagePlayback extends ListFragment implements OnItemClickListener 
         CheckedTextView check;
         HashMap<String, String> map = (HashMap<String, String>)adapter.getItemAtPosition(position);
 //        Toast.makeText(getActivity().getBaseContext(), "Item clicked: " + map.get("packagename"),  Toast.LENGTH_LONG).show();
-        message = new String(map.get("packagename"));
-        uid = new String(map.get("uid"));
+        pkgName = new String(map.get("packagename"));
         ConfirmPackage cp = new ConfirmPackage();
         cp.init(this);
         cp.show(getFragmentManager(), "package");
