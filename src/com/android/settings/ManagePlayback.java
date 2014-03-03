@@ -62,7 +62,7 @@ import android.content.DialogInterface;
 public class ManagePlayback extends ListFragment implements OnItemClickListener {
     private static int MIN_USER_UID = 10000;
     List<Map<String, String>> li = new ArrayList<Map<String, String>>();
-    private static String tag = "Li_activity";
+    private static String tag = "managePlayback";
     private PackageManager pm;
     SimpleAdapter adapter;
     String baseDirName = "/data/data/com.android.settings";
@@ -81,7 +81,7 @@ public class ManagePlayback extends ListFragment implements OnItemClickListener 
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             // Use the Builder class for convenient dialog construction
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setMessage(mplayback.pkgName + " selected")
+            builder.setMessage(mplayback.pkgName + " selected.")
                    .setPositiveButton("confirm", new DialogInterface.OnClickListener() {
                        public void onClick(DialogInterface dialog, int id) {
                            mplayback.write_to_file(mplayback.pkgName);
@@ -98,16 +98,17 @@ public class ManagePlayback extends ListFragment implements OnItemClickListener 
     }
 
     private HashMap<String,String>
-    create_package_list(String key, String value)
+    create_package_list(String key1, String value1, String key2, String value2)
     {
         HashMap<String, String> pkg = new HashMap<String,String>();
-        pkg.put(key, value);
+        pkg.put(key1, value1);
+        pkg.put(key2, value2);
         return pkg;
     }
 
-    private void init_package_list(String name)
+    private void init_package_list(String name, String pkg_name)
     {
-        li.add(create_package_list("packagename", name));
+        li.add(create_package_list("name", name, "packagename", pkg_name));
     }
 
     @Override
@@ -121,11 +122,11 @@ public class ManagePlayback extends ListFragment implements OnItemClickListener 
         while (it.hasNext()) {
             ApplicationInfo a = it.next();
             if (a.uid >= MIN_USER_UID)
-                init_package_list(a.loadLabel(pm).toString());
+                init_package_list(a.loadLabel(pm).toString(), a.packageName);
         }
         adapter = new SimpleAdapter(getActivity(), li,
                 android.R.layout.simple_list_item_single_choice,
-          new String[] {"packagename"},
+          new String[] {"name", "packagename"},
           new int[] {android.R.id.text1, android.R.id.text2});
 
         Log.i(tag, "storage directory: " + baseDirName);
@@ -141,7 +142,7 @@ public class ManagePlayback extends ListFragment implements OnItemClickListener 
         super.onCreateContextMenu(menu, v, menuInfo);
         AdapterContextMenuInfo aInfo = (AdapterContextMenuInfo) menuInfo;
         HashMap map = (HashMap) adapter.getItem(aInfo.position);
-        menu.setHeaderTitle(map.get("packagename") + "details");
+        menu.setHeaderTitle(map.get("name") + "details");
         menu.add(1, 1, 1, "" + map.get("details"));
     }
 
